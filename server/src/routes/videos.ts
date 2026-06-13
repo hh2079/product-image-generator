@@ -5,7 +5,7 @@ import { buildVideoPrompt } from '../utils/prompts';
 const router = Router();
 
 router.post('/create', async (req: Request, res: Response) => {
-  const { apiKey, imageUrls, productName } = req.body;
+  const { apiKey, imageUrls, productDesc } = req.body;
   if (!apiKey || !imageUrls || imageUrls.length < 2) {
     return res.status(400).json({
       error: { code: 'MISSING_FIELDS', message: '缺少 apiKey 或 imageUrls（至少 2 张）' },
@@ -13,7 +13,7 @@ router.post('/create', async (req: Request, res: Response) => {
   }
 
   try {
-    const prompt = buildVideoPrompt(productName || 'product');
+    const prompt = buildVideoPrompt(productDesc || 'product');
     const result = await createVideo({ apiKey, prompt, imageUrls });
     return res.json(result);
   } catch (err: any) {

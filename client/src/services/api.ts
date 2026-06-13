@@ -30,6 +30,8 @@ export function generateImage(params: {
   apiKey: string;
   angle: string;
   productName: string;
+  productDesc?: string;
+  base64Image?: string;
 }) {
   return post<{ url: string; dataUrl: string }>('/images/generate', params);
 }
