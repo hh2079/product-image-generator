@@ -66,7 +66,20 @@ export default function InfiniteCanvas() {
     };
     window.addEventListener('keydown', keyHandler);
 
+    // Mouse wheel zoom
+    const wheelHandler = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY;
+      let zoom = canvas.getZoom();
+      zoom *= delta < 0 ? 1.1 : 0.9;
+      zoom = Math.min(Math.max(zoom, 0.1), 5); // clamp 10% ~ 500%
+      const point = new fabric.Point(e.offsetX, e.offsetY);
+      canvas.zoomToPoint(point, zoom);
+    };
+    canvasRef.current!.addEventListener('wheel', wheelHandler, { passive: false });
+
     return () => {
+      canvasRef.current?.removeEventListener('wheel', wheelHandler);
       window.removeEventListener('keydown', keyHandler);
       canvas.dispose();
       fabRef.current = null;
