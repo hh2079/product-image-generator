@@ -9,6 +9,19 @@ function getFabCanvas(): any {
   return canvasEl ? (canvasEl as any).__fabCanvas : null;
 }
 
+function zoomCanvas(canvas: any, zoom: number) {
+  const vpt = canvas.viewportTransform;
+  // Zoom to center: adjust translation to keep center stable
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const oldZoom = vpt[0]; // scaleX == zoom level
+  vpt[0] = zoom;
+  vpt[3] = zoom; // scaleY
+  vpt[4] = cx - zoom * (cx - vpt[4]) / oldZoom;
+  vpt[5] = cy - zoom * (cy - vpt[5]) / oldZoom;
+  canvas.renderAll();
+}
+
 export default function Toolbar() {
   const activeTool = useProjectStore((s) => s.activeTool);
   const setActiveTool = useProjectStore((s) => s.setActiveTool);
@@ -27,8 +40,7 @@ export default function Toolbar() {
     const c = getFabCanvas();
     if (!c) return;
     const zoom = Math.min(c.getZoom() * 1.2, 5);
-    c.zoomToPoint(new (c as any).constructor.Point?.(c.width / 2, c.height / 2) || { x: c.width / 2, y: c.height / 2 }, zoom);
-    c.renderAll();
+    zoomCanvas(c, zoom);
     setZoomLevel(Math.round(zoom * 100));
   };
 
@@ -36,8 +48,7 @@ export default function Toolbar() {
     const c = getFabCanvas();
     if (!c) return;
     const zoom = Math.max(c.getZoom() * 0.8, 0.1);
-    c.zoomToPoint({ x: c.width / 2, y: c.height / 2 }, zoom);
-    c.renderAll();
+    zoomCanvas(c, zoom);
     setZoomLevel(Math.round(zoom * 100));
   };
 

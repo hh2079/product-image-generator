@@ -66,15 +66,24 @@ export default function InfiniteCanvas() {
     };
     window.addEventListener('keydown', keyHandler);
 
-    // Mouse wheel zoom
+    // Ctrl + mouse wheel zoom
     const wheelHandler = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
       e.preventDefault();
       const delta = e.deltaY;
       let zoom = canvas.getZoom();
       zoom *= delta < 0 ? 1.1 : 0.9;
-      zoom = Math.min(Math.max(zoom, 0.1), 5); // clamp 10% ~ 500%
-      const point = new fabric.Point(e.offsetX, e.offsetY);
-      canvas.zoomToPoint(point, zoom);
+      zoom = Math.min(Math.max(zoom, 0.1), 5);
+      // Zoom to mouse position using viewportTransform directly
+      const vpt = canvas.viewportTransform!;
+      const oldZoom = vpt[0];
+      const mouseX = e.offsetX;
+      const mouseY = e.offsetY;
+      vpt[0] = zoom;
+      vpt[3] = zoom;
+      vpt[4] = mouseX - zoom * (mouseX - vpt[4]) / oldZoom;
+      vpt[5] = mouseY - zoom * (mouseY - vpt[5]) / oldZoom;
+      canvas.requestRenderAll();
     };
     canvasRef.current!.addEventListener('wheel', wheelHandler, { passive: false });
 
