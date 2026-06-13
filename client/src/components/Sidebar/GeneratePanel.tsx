@@ -23,14 +23,14 @@ export default function GeneratePanel() {
     const angleLabel = ANGLES.find((a) => a.key === angle)?.label || angle;
     setGeneratingStatus('generating', `正在生成${angleLabel}角度图...`);
     try {
-      const { dataUrl } = await generateImage({
+      const { url, dataUrl } = await generateImage({
         apiKey,
         angle,
         productName: projectName,
         productDesc: productDesc.trim(),
-        base64Image: mainImage?.dataUrl, // try I2I first, backend falls back to T2I
+        base64Image: mainImage?.dataUrl,
       });
-      addAsset({ type: 'image', name: `${productDesc.trim()}_${angle}`, dataUrl, angle });
+      addAsset({ type: 'image', name: `${productDesc.trim()}_${angle}`, dataUrl, sourceUrl: url, angle });
       setGeneratingStatus('done');
       showToast(`${angleLabel}角度图生成成功`, 'success');
     } catch (err: any) {

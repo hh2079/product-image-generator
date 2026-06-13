@@ -6,6 +6,7 @@ interface Asset {
   type: 'image' | 'video';
   name: string;
   dataUrl: string;
+  sourceUrl?: string;           // Agnes AI original URL, for video keyframe input
   angle?: string;
   createdAt: number;
   width?: number;
