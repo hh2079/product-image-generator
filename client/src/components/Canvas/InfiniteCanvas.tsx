@@ -33,14 +33,21 @@ export default function InfiniteCanvas() {
     canvas.on('object:added', sync);
     canvas.on('object:removed', sync);
 
-    // Double-click to zoom
+    // Double-click to zoom (for images/videos) OR edit text
     canvas.on('mouse:dblclick', (opt: any) => {
       const obj = opt.target;
       if (!obj) return;
+      // Images/videos: open zoom modal
       const dataUrl = (obj as any)._element?.src || (obj as any).getSrc?.();
       if (dataUrl) {
         const type = (obj as any)._element?.tagName === 'VIDEO' ? 'video' : 'image';
         openZoomModal({ type, url: dataUrl });
+        return;
+      }
+      // Text objects: enter edit mode on double-click
+      if ((obj as any).enterEditing) {
+        (obj as any).enterEditing();
+        canvas.renderAll();
       }
     });
 
@@ -48,7 +55,9 @@ export default function InfiniteCanvas() {
     const keyHandler = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const active = canvas.getActiveObject();
-        if (active && (e.target as HTMLElement)?.tagName !== 'INPUT') {
+        // Don't delete if editing text
+        if (active && (active as any).isEditing) return;
+        if (active && (e.target as HTMLElement)?.tagName !== 'INPUT' && (e.target as HTMLElement)?.tagName !== 'TEXTAREA') {
           canvas.remove(active);
           canvas.discardActiveObject();
           canvas.renderAll();
@@ -64,39 +73,60 @@ export default function InfiniteCanvas() {
     };
   }, []);
 
-  // Handle tool changes
-  const addTextHandler = useCallback((opt: any) => {
+  // Text tool: click on empty area to add text
+  const handleTextToolClick = useCallback((opt: any) => {
     const canvas = fabRef.current;
-    if (!canvas || activeTool !== 'text') return;
+    if (!canvas) return;
+
+    // If clicked on existing text, enter edit mode immediately
+    if (opt.target && (opt.target as any).enterEditing) {
+      (opt.target as any).enterEditing();
+      canvas.renderAll();
+      return;
+    }
+
+    // If clicked on any existing object, don't add text
     if (opt.target) return;
 
+    // Create new text at click position
+    const point = opt.scenePoint || opt.pointer || canvas.getCenterPoint();
     const text = new fabric.IText('双击编辑文字', {
-      left: opt.scenePoint?.x ?? canvas.getCenterPoint().x,
-      top: opt.scenePoint?.y ?? canvas.getCenterPoint().y,
+      left: point.x,
+      top: point.y,
       fontSize: 24,
       fill: '#333333',
       fontFamily: 'PingFang SC, Microsoft YaHei, sans-serif',
+      editable: true,
     });
     canvas.add(text);
     canvas.setActiveObject(text);
+    // Enter edit mode immediately so user can type right away
+    text.enterEditing();
     canvas.renderAll();
     useProjectStore.getState().setActiveTool('select');
-  }, [activeTool]);
+  }, []);
 
+  // Tool switching effect
   useEffect(() => {
     const canvas = fabRef.current;
     if (!canvas) return;
+
     canvas.isDrawingMode = false;
     canvas.selection = activeTool === 'select';
 
     if (activeTool === 'text') {
-      canvas.on('mouse:down', addTextHandler);
+      canvas.on('mouse:down', handleTextToolClick);
     } else {
-      canvas.off('mouse:down', addTextHandler);
+      canvas.off('mouse:down', handleTextToolClick);
     }
 
     canvas.defaultCursor = activeTool === 'pan' ? 'grab' : 'default';
-  }, [activeTool, addTextHandler]);
+
+    // Cleanup: remove handler on unmount or re-run
+    return () => {
+      canvas.off('mouse:down', handleTextToolClick);
+    };
+  }, [activeTool, handleTextToolClick]);
 
   // Handle drop from Sidebar
   const handleDrop = useCallback((e: React.DragEvent) => {
