@@ -26,7 +26,7 @@ export default function VideoGenerateButton() {
       const { video_id } = await createVideo({
         apiKey,
         imageUrls: imageAssets.map((a) => a.sourceUrl || a.dataUrl),
-        productDesc: projectName,
+        productName: projectName,
       });
 
       setGeneratingStatus('generating', '视频生成中，请耐心等待...');
