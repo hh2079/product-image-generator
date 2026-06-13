@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { createVideo, pollVideoStatus } from '../../services/api';
-import { urlToBase64 } from '../../utils/file';
 import { VIDEO_POLL_INTERVAL, VIDEO_POLL_TIMEOUT } from '../../utils/constants';
 
 export default function VideoGenerateButton() {
@@ -38,8 +37,9 @@ export default function VideoGenerateButton() {
           const result = await pollVideoStatus(video_id, apiKey);
           if (result.status === 'completed' && result.url) {
             clearInterval(pollTimer.current);
-            const dataUrl = await urlToBase64(result.url);
-            addAsset({ type: 'video', name: `${projectName}_video`, dataUrl });
+            // Video playback doesn't need CORS — store URL directly
+            // Use backend proxy for localStorage persistence
+            addAsset({ type: 'video', name: `${projectName}_video`, dataUrl: result.url, sourceUrl: result.url });
             setGeneratingStatus('done');
             showToast('视频生成成功', 'success');
           } else if (result.status === 'failed') {
