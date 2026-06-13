@@ -71,6 +71,7 @@ export default function Toolbar() {
           {([
             ['select', '选择'],
             ['text', '文字'],
+            ['annotate', '标注'],
             ['pan', '平移'],
           ] as const).map(([key, label]) => (
             <button
