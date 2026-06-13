@@ -22,10 +22,10 @@ export default function GeneratePanel() {
     const angleLabel = ANGLES.find((a) => a.key === angle)?.label || angle;
     setGeneratingStatus('generating', `正在生成${angleLabel}角度图...`);
     try {
-      const { dataUrl } = await generateImage({
+      const { url, dataUrl } = await generateImage({
         apiKey, base64Image: mainImage.dataUrl, angle, productName: projectName,
       });
-      addAsset({ type: 'image', name: `${projectName}_${angle}`, dataUrl, angle });
+      addAsset({ type: 'image', name: `${projectName}_${angle}`, dataUrl, originalUrl: url, angle });
       setGeneratingStatus('done');
       showToast(`${angleLabel}角度图生成成功`, 'success');
     } catch (err: any) {

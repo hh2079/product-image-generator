@@ -25,7 +25,7 @@ export default function VideoGenerateButton() {
     try {
       const { video_id } = await createVideo({
         apiKey,
-        imageUrls: imageAssets.map((a) => a.dataUrl),
+        imageUrls: imageAssets.map((a) => a.originalUrl || a.dataUrl),
         productName: projectName,
       });
 
