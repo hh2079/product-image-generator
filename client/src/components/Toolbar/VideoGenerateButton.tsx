@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { createVideo, pollVideoStatus } from '../../services/api';
-import { urlToBase64 } from '../../utils/file';
 import { VIDEO_POLL_INTERVAL, VIDEO_POLL_TIMEOUT } from '../../utils/constants';
 
 export default function VideoGenerateButton() {
@@ -36,10 +35,9 @@ export default function VideoGenerateButton() {
       pollTimer.current = setInterval(async () => {
         try {
           const result = await pollVideoStatus(video_id, apiKey);
-          if (result.status === 'completed' && result.url) {
+          if (result.status === 'completed' && result.dataUrl) {
             clearInterval(pollTimer.current);
-            const dataUrl = await urlToBase64(result.url);
-            addAsset({ type: 'video', name: `${projectName}_video`, dataUrl });
+            addAsset({ type: 'video', name: `${projectName}_video`, dataUrl: result.dataUrl });
             setGeneratingStatus('done');
             showToast('视频生成成功', 'success');
           } else if (result.status === 'failed') {

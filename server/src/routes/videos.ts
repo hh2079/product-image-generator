@@ -35,6 +35,15 @@ router.get('/status/:id', async (req: Request, res: Response) => {
 
   try {
     const result = await pollVideoStatus(apiKey, videoId);
+
+    // When completed, download video server-side to avoid CORS
+    if (result.status === 'completed' && result.url) {
+      const videoRes = await fetch(result.url);
+      const buffer = Buffer.from(await videoRes.arrayBuffer());
+      const dataUrl = `data:video/mp4;base64,${buffer.toString('base64')}`;
+      return res.json({ ...result, dataUrl });
+    }
+
     return res.json(result);
   } catch (err: any) {
     return res.status(500).json({

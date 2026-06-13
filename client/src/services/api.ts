@@ -47,6 +47,7 @@ export function pollVideoStatus(videoId: string, apiKey: string) {
   return get<{
     status: string;
     url?: string;
+    dataUrl?: string;
     error?: string;
     progress?: number;
   }>(`/videos/status/${videoId}?api_key=${encodeURIComponent(apiKey)}`);
