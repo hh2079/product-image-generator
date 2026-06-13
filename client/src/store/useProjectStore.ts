@@ -23,8 +23,8 @@ interface ProjectStore {
   removeAsset: (id: string) => void;
   apiKey: string;
   setApiKey: (key: string) => void;
-  activeTool: 'select' | 'text' | 'pan';
-  setActiveTool: (tool: 'select' | 'text' | 'pan') => void;
+  activeTool: 'select' | 'text' | 'pan' | 'annotate';
+  setActiveTool: (tool: 'select' | 'text' | 'pan' | 'annotate') => void;
   selectedObjectId: string | null;
   setSelectedObjectId: (id: string | null) => void;
   zoomModal: { type: 'image' | 'video'; url: string } | null;
