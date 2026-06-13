@@ -1,10 +1,12 @@
 const BASE = '/api';
+const LONG_TIMEOUT = 300000; // 5 min for AI generation
 
 async function post<T>(path: string, body: Record<string, unknown>): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(LONG_TIMEOUT),
   });
   const json = await res.json() as T & { error?: { code: string; message: string } };
   if (!res.ok) {
