@@ -18,7 +18,7 @@ export default function GeneratePanel() {
 
   const handleGenerate = async () => {
     if (!hasKey) return showToast('请先设置 API Key', 'error');
-    if (!productDesc.trim()) return showToast('请输入商品的英文描述，如 white sneaker', 'error');
+    if (!productDesc.trim()) return showToast('请输入商品描述', 'error');
 
     const angleLabel = ANGLES.find((a) => a.key === angle)?.label || angle;
     setGeneratingStatus('generating', `正在生成${angleLabel}角度图...`);
@@ -41,11 +41,11 @@ export default function GeneratePanel() {
 
   return (
     <div style={{ padding: 8, borderTop: '1px solid #eee' }}>
-      <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>商品描述（英文）</p>
+      <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>商品描述</p>
       <input
         value={productDesc}
         onChange={(e) => setProductDesc(e.target.value)}
-        placeholder="例: white flat sneaker"
+        placeholder="例: 白色平板鞋"
         style={{
           width: '100%', padding: '6px 8px', fontSize: 12, borderRadius: 4,
           border: '1px solid #ddd', marginBottom: 8,
