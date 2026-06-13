@@ -150,6 +150,119 @@ export default function InfiniteCanvas() {
     };
   }, [activeTool, handleTextToolClick]);
 
+  // Annotation: click to start line, drag to end
+  useEffect(() => {
+    const canvas = fabRef.current;
+    if (!canvas) return;
+
+    if (activeTool !== 'annotate') {
+      canvas.selection = true;
+      return;
+    }
+
+    canvas.selection = false;
+    canvas.defaultCursor = 'crosshair';
+    let startPoint: { x: number; y: number } | null = null;
+    let tempLine: fabric.Path | null = null;
+
+    const onMouseDown = (opt: any) => {
+      const point = opt.scenePoint || opt.pointer;
+      if (!point) return;
+      // Don't start line if clicking on existing object
+      if (opt.target) return;
+      startPoint = { x: point.x, y: point.y };
+    };
+
+    const onMouseMove = (opt: any) => {
+      if (!startPoint) return;
+      const point = opt.scenePoint || opt.pointer;
+      if (!point) return;
+      if (tempLine) canvas.remove(tempLine);
+      const cx = (startPoint.x + point.x) / 2;
+      const cy = (startPoint.y + point.y) / 2 - 30;
+      const pathStr = `M ${startPoint.x} ${startPoint.y} Q ${cx} ${cy} ${point.x} ${point.y}`;
+      tempLine = new fabric.Path(pathStr, {
+        fill: '', stroke: '#999', strokeWidth: 1, objectCaching: false,
+      });
+      canvas.add(tempLine);
+      canvas.renderAll();
+    };
+
+    const onMouseUp = (opt: any) => {
+      if (!startPoint) return;
+      const point = opt.scenePoint || opt.pointer;
+      if (!point) { startPoint = null; return; }
+
+      const minDist = 20;
+      const dx = point.x - startPoint.x;
+      const dy = point.y - startPoint.y;
+      if (Math.sqrt(dx * dx + dy * dy) < minDist) {
+        startPoint = null;
+        if (tempLine) { canvas.remove(tempLine); tempLine = null; canvas.renderAll(); }
+        return;
+      }
+
+      if (tempLine) canvas.remove(tempLine);
+
+      // Anchor circle
+      const anchor = new fabric.Circle({
+        left: startPoint.x - 5, top: startPoint.y - 5,
+        radius: 5, fill: '#3498db', selectable: false,
+      });
+
+      // Bezier curve
+      const cx = (startPoint.x + point.x) / 2;
+      const cy = (startPoint.y + point.y) / 2 - 30;
+      const pathStr = `M ${startPoint.x} ${startPoint.y} Q ${cx} ${cy} ${point.x} ${point.y}`;
+      const curve = new fabric.Path(pathStr, {
+        fill: '', stroke: '#999', strokeWidth: 1,
+      });
+
+      // Arrow triangle at end
+      const arrowSize = 6;
+      const endAngle = Math.atan2(point.y - cy, point.x - cx);
+      const arrow = new fabric.Triangle({
+        left: point.x - arrowSize, top: point.y - arrowSize / 2,
+        width: arrowSize, height: arrowSize,
+        fill: '#999', angle: (endAngle * 180) / Math.PI + 90,
+        selectable: false,
+      });
+
+      // Text label
+      const text = new fabric.IText('标注内容', {
+        left: point.x + 10, top: point.y - 10,
+        fontSize: 12, fill: '#333',
+        fontFamily: 'PingFang SC, Microsoft YaHei, sans-serif',
+      });
+
+      const group = new fabric.Group([anchor, curve, arrow, text], {
+        selectable: true,
+        hasControls: true,
+      });
+
+      canvas.add(group);
+      canvas.setActiveObject(group);
+      canvas.renderAll();
+      useProjectStore.getState().setActiveTool('select');
+
+      startPoint = null;
+      tempLine = null;
+    };
+
+    canvas.on('mouse:down', onMouseDown);
+    canvas.on('mouse:move', onMouseMove);
+    canvas.on('mouse:up', onMouseUp);
+
+    return () => {
+      canvas.off('mouse:down', onMouseDown);
+      canvas.off('mouse:move', onMouseMove);
+      canvas.off('mouse:up', onMouseUp);
+      if (tempLine) { canvas.remove(tempLine); tempLine = null; canvas.renderAll(); }
+      canvas.defaultCursor = 'default';
+      canvas.selection = true;
+    };
+  }, [activeTool]);
+
   // Handle drop from Sidebar
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
