@@ -22,14 +22,7 @@ router.post('/generate', async (req: Request, res: Response) => {
   try {
     const prompt = buildImagePrompt(productName || 'product', angle);
     const url = await generateImage({ apiKey, prompt, base64Image });
-
-    // Download the image server-side to avoid CORS issues
-    const imageRes = await fetch(url);
-    const buffer = Buffer.from(await imageRes.arrayBuffer());
-    const contentType = imageRes.headers.get('content-type') || 'image/png';
-    const dataUrl = `data:${contentType};base64,${buffer.toString('base64')}`;
-
-    return res.json({ url, dataUrl });
+    return res.json({ url });
   } catch (err: any) {
     const status = err.message?.includes('API Key') ? 401 : 500;
     return res.status(status).json({

@@ -32,6 +32,7 @@ async function tryGenerate(model: string, params: GenerateImageParams): Promise<
         response_format: 'url',
       },
     }),
+    signal: AbortSignal.timeout(60000), // 60s per model attempt
   });
 
   if (!res.ok) {
