@@ -32,7 +32,7 @@ export function generateImage(params: {
   angle: string;
   productName: string;
 }) {
-  return post<{ url: string }>('/images/generate', params);
+  return post<{ url: string; dataUrl: string }>('/images/generate', params);
 }
 
 export function createVideo(params: {

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { ANGLES } from '../../utils/constants';
-import { urlToBase64 } from '../../utils/file';
 import { generateImage } from '../../services/api';
 
 export default function GeneratePanel() {
@@ -23,10 +22,9 @@ export default function GeneratePanel() {
     const angleLabel = ANGLES.find((a) => a.key === angle)?.label || angle;
     setGeneratingStatus('generating', `正在生成${angleLabel}角度图...`);
     try {
-      const { url } = await generateImage({
+      const { dataUrl } = await generateImage({
         apiKey, base64Image: mainImage.dataUrl, angle, productName: projectName,
       });
-      const dataUrl = await urlToBase64(url);
       addAsset({ type: 'image', name: `${projectName}_${angle}`, dataUrl, angle });
       setGeneratingStatus('done');
       showToast(`${angleLabel}角度图生成成功`, 'success');
