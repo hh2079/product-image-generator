@@ -39,7 +39,9 @@ export function generateImage(params: {
 export function createVideo(params: {
   apiKey: string;
   imageUrls: string[];
-  productName: string;
+  productName?: string;
+  productDesc?: string;
+  transitions?: string[];
 }) {
   return post<{ video_id: string; task_id: string }>('/videos/create', params);
 }

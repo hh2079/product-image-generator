@@ -11,6 +11,17 @@ export function buildImagePrompt(productDesc: string, angle: string): string {
   return template.replace('{name}', productDesc || 'product');
 }
 
-export function buildVideoPrompt(productDesc: string): string {
-  return `Smooth cinematic product showcase video of ${productDesc}, camera slowly orbiting around the product in a 360-degree arc, studio lighting with soft key light and subtle rim light, pure white background, professional commercial video quality, maintaining consistent product appearance, color accuracy, and shape throughout the entire sequence`;
+export function buildVideoPrompt(productDesc: string, transitions?: string[]): string {
+  let prompt = `Smooth cinematic product showcase video of ${productDesc}. `;
+
+  if (transitions && transitions.length > 0) {
+    transitions.forEach((t) => {
+      prompt += `[${t}] `;
+    });
+  } else {
+    prompt += 'Camera slowly orbiting around the product in a 360-degree arc. ';
+  }
+
+  prompt += 'Studio lighting with soft key light, pure white background, professional commercial video quality, maintaining consistent product appearance throughout.';
+  return prompt;
 }
