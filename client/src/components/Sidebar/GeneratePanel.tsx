@@ -42,13 +42,15 @@ export default function GeneratePanel() {
   return (
     <div style={{ padding: 8, borderTop: '1px solid #eee' }}>
       <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>商品描述</p>
-      <input
+      <textarea
         value={productDesc}
         onChange={(e) => setProductDesc(e.target.value)}
-        placeholder="例: 白色平板鞋"
+        placeholder="例: 一双纯白色低帮休闲帆布鞋，鞋面为帆布材质，鞋带为白色扁平棉质鞋带，鞋底为白色橡胶底，鞋头为圆形"
+        rows={3}
         style={{
           width: '100%', padding: '6px 8px', fontSize: 12, borderRadius: 4,
-          border: '1px solid #ddd', marginBottom: 8,
+          border: '1px solid #ddd', marginBottom: 8, resize: 'vertical',
+          fontFamily: 'inherit',
         }}
       />
 
