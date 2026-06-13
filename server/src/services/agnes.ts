@@ -69,6 +69,7 @@ export async function createVideo(params: CreateVideoParams): Promise<{ video_id
     const err = await res.json().catch(() => ({}));
     const status = res.status;
     if (status === 401) throw new Error('API Key 无效或已过期');
+    if (status === 503) throw new Error('AI 服务繁忙，请稍后重试');
     throw new Error((err as any).error?.message || `视频创建失败 (HTTP ${status})`);
   }
 
@@ -87,7 +88,10 @@ export async function pollVideoStatus(apiKey: string, videoId: string): Promise<
   });
 
   if (!res.ok) {
-    throw new Error(`查询视频状态失败 (HTTP ${res.status})`);
+    const status = res.status;
+    if (status === 401) throw new Error('API Key 无效或已过期');
+    if (status === 503) throw new Error('AI 服务繁忙，请稍后重试');
+    throw new Error(`查询视频状态失败 (HTTP ${status})`);
   }
 
   const json = await res.json() as {
