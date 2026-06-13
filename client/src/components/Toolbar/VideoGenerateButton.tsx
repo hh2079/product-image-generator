@@ -12,20 +12,20 @@ export default function VideoGenerateButton() {
   const showToast = useProjectStore((s) => s.showToast);
   const pollTimer = useRef<ReturnType<typeof setInterval>>();
 
-  const imageAssets = assets.filter((a) => a.type === 'image');
-  const canGenerate = imageAssets.length >= 2 && !!apiKey;
+  const generatedImages = assets.filter((a) => a.type === 'image' && a.originalUrl);
+  const canGenerate = generatedImages.length >= 2 && !!apiKey;
 
   const handleGenerateVideo = async () => {
     if (!canGenerate) {
       if (!apiKey) return showToast('请先设置 API Key', 'error');
-      return showToast('请至少生成 2 张不同角度的图片', 'error');
+      return showToast('请至少生成 2 张不同角度的图片（需重新生成）', 'error');
     }
 
     setGeneratingStatus('generating', '正在创建视频任务...');
     try {
       const { video_id } = await createVideo({
         apiKey,
-        imageUrls: imageAssets.map((a) => a.originalUrl || a.dataUrl),
+        imageUrls: generatedImages.map((a) => a.originalUrl!),
         productName: projectName,
       });
 
@@ -71,7 +71,7 @@ export default function VideoGenerateButton() {
         color: '#fff', cursor: canGenerate ? 'pointer' : 'not-allowed',
       }}
     >
-      {canGenerate ? '生成商品视频' : `还需 ${2 - imageAssets.length} 张图`}
+      {canGenerate ? '生成商品视频' : `还需 ${2 - generatedImages.length} 张生成图`}
     </button>
   );
 }
