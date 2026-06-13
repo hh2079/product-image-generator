@@ -24,7 +24,7 @@ export async function generateImage(params: GenerateImageParams): Promise<string
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'agnes-image-2.1-flash',
+      model: 'agnes-image-2.0-flash',
       prompt,
       size,
       extra_body: {
