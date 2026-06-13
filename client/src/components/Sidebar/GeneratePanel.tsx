@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { ANGLES } from '../../utils/constants';
-import { generateImage } from '../../services/api';
+import { generateImage, pollImageStatus } from '../../services/api';
 
 export default function GeneratePanel() {
   const assets = useProjectStore((s) => s.assets);
@@ -11,6 +11,7 @@ export default function GeneratePanel() {
   const setGeneratingStatus = useProjectStore((s) => s.setGeneratingStatus);
   const showToast = useProjectStore((s) => s.showToast);
   const [angle, setAngle] = useState<string>('front');
+  const pollTimer = useRef<ReturnType<typeof setInterval>>();
 
   const mainImage = assets.find((a) => a.type === 'image');
   const hasKey = !!apiKey;
@@ -22,12 +23,27 @@ export default function GeneratePanel() {
     const angleLabel = ANGLES.find((a) => a.key === angle)?.label || angle;
     setGeneratingStatus('generating', `正在生成${angleLabel}角度图...`);
     try {
-      const { url } = await generateImage({
+      const { task_id } = await generateImage({
         apiKey, base64Image: mainImage.dataUrl, angle, productName: projectName,
       });
-      addAsset({ type: 'image', name: `${projectName}_${angle}`, dataUrl: url, originalUrl: url, angle });
-      setGeneratingStatus('done');
-      showToast(`${angleLabel}角度图生成成功`, 'success');
+
+      pollTimer.current = setInterval(async () => {
+        try {
+          const result = await pollImageStatus(task_id);
+          if (result.status === 'completed' && result.url) {
+            clearInterval(pollTimer.current);
+            addAsset({ type: 'image', name: `${projectName}_${angle}`, dataUrl: result.url, originalUrl: result.url, angle });
+            setGeneratingStatus('done');
+            showToast(`${angleLabel}角度图生成成功`, 'success');
+          } else if (result.status === 'failed') {
+            clearInterval(pollTimer.current);
+            setGeneratingStatus('error');
+            showToast(`生成失败: ${result.error || '未知错误'}`, 'error');
+          }
+        } catch {
+          // polling error, keep trying
+        }
+      }, 3000);
     } catch (err: any) {
       setGeneratingStatus('error');
       showToast(err.message || '生成失败', 'error');

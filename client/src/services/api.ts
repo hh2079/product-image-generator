@@ -34,7 +34,11 @@ export function generateImage(params: {
   angle: string;
   productName: string;
 }) {
-  return post<{ url: string }>('/images/generate', params);
+  return post<{ task_id: string }>('/images/generate', params);
+}
+
+export function pollImageStatus(taskId: string) {
+  return get<{ status: string; url?: string; error?: string }>(`/images/status/${taskId}`);
 }
 
 export function createVideo(params: {
