@@ -35,9 +35,9 @@ export default function VideoGenerateButton() {
       pollTimer.current = setInterval(async () => {
         try {
           const result = await pollVideoStatus(video_id, apiKey);
-          if (result.status === 'completed' && result.dataUrl) {
+          if (result.status === 'completed' && result.url) {
             clearInterval(pollTimer.current);
-            addAsset({ type: 'video', name: `${projectName}_video`, dataUrl: result.dataUrl });
+            addAsset({ type: 'video', name: `${projectName}_video`, dataUrl: result.url, originalUrl: result.url });
             setGeneratingStatus('done');
             showToast('视频生成成功', 'success');
           } else if (result.status === 'failed') {
