@@ -1,12 +1,10 @@
 const BASE = '/api';
-const LONG_TIMEOUT = 300000; // 5 min for AI generation
 
 async function post<T>(path: string, body: Record<string, unknown>): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(LONG_TIMEOUT),
   });
   const json = await res.json() as T & { error?: { code: string; message: string } };
   if (!res.ok) {
@@ -30,15 +28,10 @@ export function validateApiKey(apiKey: string) {
 
 export function generateImage(params: {
   apiKey: string;
-  base64Image: string;
   angle: string;
   productName: string;
 }) {
-  return post<{ task_id: string }>('/images/generate', params);
-}
-
-export function pollImageStatus(taskId: string) {
-  return get<{ status: string; url?: string; error?: string }>(`/images/status/${taskId}`);
+  return post<{ url: string; dataUrl: string }>('/images/generate', params);
 }
 
 export function createVideo(params: {
@@ -53,7 +46,6 @@ export function pollVideoStatus(videoId: string, apiKey: string) {
   return get<{
     status: string;
     url?: string;
-    dataUrl?: string;
     error?: string;
     progress?: number;
   }>(`/videos/status/${videoId}?api_key=${encodeURIComponent(apiKey)}`);

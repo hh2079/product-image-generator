@@ -6,7 +6,6 @@ interface Asset {
   type: 'image' | 'video';
   name: string;
   dataUrl: string;
-  originalUrl?: string;
   angle?: string;
   createdAt: number;
   width?: number;

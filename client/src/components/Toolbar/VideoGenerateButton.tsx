@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { createVideo, pollVideoStatus } from '../../services/api';
+import { urlToBase64 } from '../../utils/file';
 import { VIDEO_POLL_INTERVAL, VIDEO_POLL_TIMEOUT } from '../../utils/constants';
 
 export default function VideoGenerateButton() {
@@ -12,20 +13,20 @@ export default function VideoGenerateButton() {
   const showToast = useProjectStore((s) => s.showToast);
   const pollTimer = useRef<ReturnType<typeof setInterval>>();
 
-  const generatedImages = assets.filter((a) => a.type === 'image' && a.originalUrl);
-  const canGenerate = generatedImages.length >= 2 && !!apiKey;
+  const imageAssets = assets.filter((a) => a.type === 'image');
+  const canGenerate = imageAssets.length >= 2 && !!apiKey;
 
   const handleGenerateVideo = async () => {
     if (!canGenerate) {
       if (!apiKey) return showToast('请先设置 API Key', 'error');
-      return showToast('请至少生成 2 张不同角度的图片（需重新生成）', 'error');
+      return showToast('请至少生成 2 张不同角度的图片', 'error');
     }
 
     setGeneratingStatus('generating', '正在创建视频任务...');
     try {
       const { video_id } = await createVideo({
         apiKey,
-        imageUrls: generatedImages.map((a) => a.originalUrl!),
+        imageUrls: imageAssets.map((a) => a.dataUrl),
         productName: projectName,
       });
 
@@ -37,7 +38,8 @@ export default function VideoGenerateButton() {
           const result = await pollVideoStatus(video_id, apiKey);
           if (result.status === 'completed' && result.url) {
             clearInterval(pollTimer.current);
-            addAsset({ type: 'video', name: `${projectName}_video`, dataUrl: result.url, originalUrl: result.url });
+            const dataUrl = await urlToBase64(result.url);
+            addAsset({ type: 'video', name: `${projectName}_video`, dataUrl });
             setGeneratingStatus('done');
             showToast('视频生成成功', 'success');
           } else if (result.status === 'failed') {
@@ -71,7 +73,7 @@ export default function VideoGenerateButton() {
         color: '#fff', cursor: canGenerate ? 'pointer' : 'not-allowed',
       }}
     >
-      {canGenerate ? '生成商品视频' : `还需 ${2 - generatedImages.length} 张生成图`}
+      {canGenerate ? '生成商品视频' : `还需 ${2 - imageAssets.length} 张图`}
     </button>
   );
 }

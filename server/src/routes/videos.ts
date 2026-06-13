@@ -35,7 +35,6 @@ router.get('/status/:id', async (req: Request, res: Response) => {
 
   try {
     const result = await pollVideoStatus(apiKey, videoId);
-
     return res.json(result);
   } catch (err: any) {
     return res.status(500).json({
