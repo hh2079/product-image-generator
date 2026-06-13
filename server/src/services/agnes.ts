@@ -15,7 +15,7 @@ interface CreateVideoParams {
   frameRate?: number;
 }
 
-export async function generateImage(params: GenerateImageParams): Promise<string> {
+async function tryGenerate(model: string, params: GenerateImageParams): Promise<string> {
   const { apiKey, prompt, base64Image, size = '1024x768' } = params;
   const res = await fetch(`${AGNES_BASE}/v1/images/generations`, {
     method: 'POST',
@@ -24,7 +24,7 @@ export async function generateImage(params: GenerateImageParams): Promise<string
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'agnes-image-2.0-flash',
+      model,
       prompt,
       size,
       extra_body: {
@@ -38,7 +38,7 @@ export async function generateImage(params: GenerateImageParams): Promise<string
     const err = await res.json().catch(() => ({}));
     const status = res.status;
     if (status === 401) throw new Error('API Key 无效或已过期');
-    if (status === 503) throw new Error('AI 服务繁忙，请稍后重试');
+    if (status === 503) return ''; // signal to retry
     throw new Error((err as any).error?.message || `图片生成失败 (HTTP ${status})`);
   }
 
@@ -46,6 +46,15 @@ export async function generateImage(params: GenerateImageParams): Promise<string
   const url = json.data?.[0]?.url;
   if (!url) throw new Error('未获取到生成图片 URL');
   return url;
+}
+
+export async function generateImage(params: GenerateImageParams): Promise<string> {
+  // Try 2.0-flash first, fallback to 2.1-flash on 503
+  for (const model of ['agnes-image-2.0-flash', 'agnes-image-2.1-flash']) {
+    const url = await tryGenerate(model, params);
+    if (url) return url;
+  }
+  throw new Error('AI 服务繁忙，请稍后重试');
 }
 
 export async function createVideo(params: CreateVideoParams): Promise<{ video_id: string; task_id: string }> {
