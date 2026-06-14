@@ -48,7 +48,7 @@ export default function Header() {
         borderBottom: '1px solid #e0e0e0', background: '#fff', gap: 16,
         flexShrink: 0,
       }}>
-        <span style={{ fontWeight: 600, fontSize: 16 }}>商品图片生成器</span>
+        <span style={{ fontWeight: 600, fontSize: 16 }}>视图生成器</span>
         {editing ? (
           <input
             autoFocus

@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: product-image-generator
-    env: node
-    buildCommand: cd client && npm install && npm run build && cd ../server && npm install && npm run build
-    startCommand: cd server && node dist/index.js
-    envVars:
-      - key: NODE_VERSION
-        value: 20.0.0
